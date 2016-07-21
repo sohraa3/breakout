@@ -66,7 +66,7 @@ class GameObject(object):
     def get_position(self):
         return self.canvas.coords(self.item)
 
-    def move(self):
+    def move(self, x, y):
         self.canvas.move(self.item, x, y)
 
     def delete(self):
