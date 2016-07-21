@@ -3,7 +3,8 @@ import tkinter as tk
 class Game(tk.Frame):
     def __init__(self, master):
         super(Game, self).__init__(master)
-        self.lives = 3
+        self.root = master
+        self.lives = 0
         self.width = 610
         self.height = 400
         self.canvas = tk.Canvas(self, bg='#aaaaff',
@@ -14,17 +15,26 @@ class Game(tk.Frame):
 
         self.items = {}
         self.ball = None
-        self.paddle = Paddle(self.canvas, self.width/2, 326)
-        self.items[self.paddle.item] = self.paddle
-        for x in range(5, self.width - 5, 75):
-            self.add_brick(x + 37.5, 50, 3)
-            self.add_brick(x + 37.5, 70, 2)
-            self.add_brick(x + 37.5, 90, 1)
+        self.paddle = None
+
+        self.init_game_objs()
         self.hud = None
         self.setup_game()
         self.canvas.focus_set()
         self.canvas.bind('<Left>', lambda _: self.paddle.move(-10))
         self.canvas.bind('<Right>', lambda _: self.paddle.move(10))
+
+    def init_game_objs(self):
+        if self.ball is not None:
+            self.ball.delete()
+        if self.paddle is not None:
+            self.paddle.delete()
+        self.paddle = Paddle(self.canvas, self.width/2, 346)
+        self.items[self.paddle.item] = self.paddle
+        for x in range(5, self.width - 5, 75):
+            self.add_brick(x + 37.5, 50, 2)
+            self.add_brick(x + 37.5, 70, 1)
+            self.add_brick(x + 37.5, 90, 1)
 
     def setup_game(self):
         self.add_ball()
@@ -59,12 +69,14 @@ class Game(tk.Frame):
         num_bricks = len(self.canvas.find_withtag('brick'))
         if num_bricks == 0:
             self.ball.speed = None
-            self.draw_text(300, 200, 'You win!')
+            self.text = self.draw_text(300, 200, 'You win!')
+            self.after(1000, self.play_again)
         elif self.ball.get_position()[3] >= self.height:
             self.ball.speed = None
             self.lives -= 1
             if self.lives < 0:
-                self.draw_text(300, 200, 'Game Over')
+                self.text = self.draw_text(300, 200, 'Game Over')
+                self.after(1000, self.play_again)
             else:
                 self.after(1000, self.setup_game)
         else:
@@ -84,6 +96,24 @@ class Game(tk.Frame):
             self.hud = self.draw_text(50, 20, text, 15)
         else:
             self.canvas.itemconfig(self.hud, text=text)
+
+    def play_again(self):
+        self.canvas.delete(self.text)
+        self.text = self.draw_text(300,200, 'Play again? (Y or N)')
+        self.canvas.bind('<y>', lambda _: self.restart_game())
+        self.canvas.bind('<n>', lambda _: self.end_game())#exit game
+
+    def restart_game(self):
+        self.lives = 3
+        self.canvas.delete(self.text)
+        [self.items[x].delete() for x in self.items]
+        self.init_game_objs()
+        self.setup_game()
+
+    def end_game(self):
+        self.canvas.delete(self.text)
+        self.text = self.draw_text(300,200, 'Thanks for playing!')
+        #self.after(2000, self.root.quit())
 
 class GameObject(object):
     def __init__(self, canvas, item):
