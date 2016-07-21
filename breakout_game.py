@@ -26,20 +26,37 @@ class Game(tk.Frame):
         self.canvas.bind('<Left>', lambda _: self.paddle.move(-10))
         self.canvas.bind('<Right>', lambda _: self.paddle.move(10))
 
-    def setup_game:
+    def setup_game(self):
         self.add_ball()
         self.update_lives_text()
         self.text = self.draw_text(300, 200, 'Press Space to Start')
         self.canvas.bind('<space>', lambda _: self.start_game())
 
-    def add_brick(x, y, hits):
+    def add_brick(self, x, y, hits):
+        brick = Brick(self.canvas, x, y, hits)
+        self.items[brick.item] = brick
 
-    def add_ball:
+    def add_ball(self):
+        if self.ball is not None:
+            self.ball.delete()
+        paddle_coords = self.paddle.get_position()
+        x = (paddle_coords[0] + paddle_coords[2]) * 0.5
+        self.ball = Ball(self.canvas, x, 310)
+        self.paddle.set_ball(self.ball)
 
-    def draw_text(x, y, text):
+    def draw_text(self, x, y, text, size='40'):
+        font = ('Helvetica', size)
+        return self.canvas.create_text(x, y, text=text, font=font)
 
-    def start_game:
+    def start_game(self):
+        pass
 
+    def update_lives_text(self):
+        text = 'Lives: %s' % self.lives
+        if self.hud is None:
+            self.hud = self.draw_text(50, 20, text, 15)
+        else:
+            self.canvas.itemconfig(self.hud, text=text)
 
 class GameObject(object):
     def __init__(self, canvas, item):
@@ -77,17 +94,17 @@ class Paddle(GameObject):
                                        fill='blue')
         super(Paddle, self).__init__(canvas, item)
 
-        def set_ball(self, ball):
-            self.ball = ball
+    def set_ball(self, ball):
+        self.ball = ball
 
-        def move(self, offset):
-            coords = self.get_position()
-            width = self.canvas.winfo_width()
-            if coords[0] + offset >= 0 and \
-                coords[2] + offset <= width:
-                super(Paddle, self).move(offset, 0)
-                if self.ball is not None:
-                    self.ball.move(offset, 0)
+    def move(self, offset):
+        coords = self.get_position()
+        width = self.canvas.winfo_width()
+        if coords[0] + offset >= 0 and \
+            coords[2] + offset <= width:
+            super(Paddle, self).move(offset, 0)
+            if self.ball is not None:
+                self.ball.move(offset, 0)
 
 class Brick(GameObject):
     COLORS = {1: '#999999', 2: '#555555', 3: '#222222'}
